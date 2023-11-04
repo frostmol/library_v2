@@ -1,0 +1,112 @@
+/* Главное окно */
+QMainWindow {
+    background-color: #fff;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+/*background-image: url(":/background.jpg");*/
+/* */
+/* Путь к фоновому изображению */
+/*
+}*/
+
+/* Кнопки */
+/* Кнопки */
+
+
+
+/* QTextEdit для отображения результатов */
+QTextEdit {
+    background-color: #f2f2f2;
+    /* Цвет фона */
+    color: #333333;
+    /* Цвет текста */
+    border: 1px solid #d1d1d1;
+    /* Граница */
+    padding: 5px;
+    font-size: 12px;
+}
+
+/* Виджет с вводом текста */
+QLineEdit {
+    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    appearance: none;
+    border-radius: 4px;
+}
+
+QLineEdit:focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+}
+
+
+/* Цвет текста для QLabel */
+QLabel {
+    font-family: system-ui, sans-serif;
+    color: #333333;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+QPushButton {
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    border-radius: 5px;
+    font-size: 20px;
+    height: 50px;
+    line-height: 1;
+    position: relative;
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+QPushButton:hover {
+    text-decoration: none;
+    color: #fff;
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+QPushButton:focus,
+QPushButton.focus {
+    outline: 0;
+}
+
+QPushButton.disabled,
+QPushButton:disabled {
+    opacity: 0.65;
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+QPushButton:not(:disabled):not(.disabled):active,
+QPushButton:not(:disabled):not(.disabled).active,
+show>.QPushButton.dropdown-toggle {
+    cursor: pointer;
+    color: #fff;
+    background-color: #0062cc;
+    border-color: #005cbf;
+}
+
+QPushButton:not(:disabled):not(.disabled):active:focus,
+QPushButton:not(:disabled):not(.disabled).active:focus,
+show>.QPushButton.dropdown-toggle:focus {
+    background-image: none;
+}
+
+
+/* Добавьте другие стили, если необходимо */
