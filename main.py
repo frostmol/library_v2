@@ -1,7 +1,9 @@
 import sys
 import json
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget, QStackedWidget, QMessageBox
-from datetime import date
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QLineEdit, QVBoxLayout, QWidget, \
+    QStackedWidget, QMessageBox, QComboBox, QHBoxLayout
+from datetime import datetime
+
 
 class LibraryApp(QMainWindow):
     def __init__(self):
@@ -109,6 +111,19 @@ class LibraryApp(QMainWindow):
         self.statistics_layout = QVBoxLayout()
         self.statistics_form.setLayout(self.statistics_layout)
 
+        self.statistics_options_combo = QComboBox()
+        self.statistics_options_combo.addItems(["Книга", "Автор", "Все книги"])
+        self.statistics_options_combo.currentIndexChanged.connect(self.update_statistics_input)
+
+        self.statistics_input_layout = QHBoxLayout()
+
+        self.statistics_input_label = QLabel("Введите название книги/имя автора:", self)
+        self.statistics_input = QLineEdit(self)
+        self.statistics_input.setVisible(False)
+
+        self.statistics_input_layout.addWidget(self.statistics_input_label)
+        self.statistics_input_layout.addWidget(self.statistics_input)
+
         self.start_date_label = QLabel("Начальная дата (гггг-мм-дд):", self)
         self.start_date_input = QLineEdit(self)
         self.end_date_label = QLabel("Конечная дата (гггг-мм-дд):", self)
@@ -118,6 +133,8 @@ class LibraryApp(QMainWindow):
         self.statistics_back_btn = QPushButton("Вернуться", self)
         self.statistics_back_btn.clicked.connect(self.show_home_page)
 
+        self.statistics_layout.addWidget(self.statistics_options_combo)
+        self.statistics_layout.addLayout(self.statistics_input_layout)
         self.statistics_layout.addWidget(self.start_date_label)
         self.statistics_layout.addWidget(self.start_date_input)
         self.statistics_layout.addWidget(self.end_date_label)
@@ -126,6 +143,8 @@ class LibraryApp(QMainWindow):
         self.statistics_layout.addWidget(self.statistics_back_btn)
 
         self.stacked_widget.addWidget(self.statistics_form)
+
+
 
     def load_books_from_file(self):
         try:
@@ -154,9 +173,24 @@ class LibraryApp(QMainWindow):
         self.search_title_author_input.clear()
         self.stacked_widget.setCurrentIndex(3)
 
+    def update_statistics_input(self, index):
+        if index == 0:  # "Книга"
+            self.statistics_input_label.setText("Введите название книги:")
+            self.statistics_input.setVisible(True)
+            self.statistics_input.setEnabled(True)
+        elif index == 1:  # "Автор"
+            self.statistics_input_label.setText("Введите имя автора:")
+            self.statistics_input.setVisible(True)
+            self.statistics_input.setEnabled(True)
+        else:
+            self.statistics_input.setVisible(False)
+
     def show_statistics_form(self):
         self.start_date_input.clear()
         self.end_date_input.clear()
+        self.statistics_options_combo.setCurrentIndex(0)  # Сбросить выбранную опцию на "Книга"
+        self.statistics_input_label.setText("Введите название книги:")
+        self.statistics_input.setVisible(True)
         self.stacked_widget.setCurrentIndex(4)
 
     def add_book(self):
@@ -203,23 +237,112 @@ class LibraryApp(QMainWindow):
         else:
             QMessageBox.warning(self, "Результат поиска", "Книги не найдены.")
 
-    def show_statistics(self):
-        start_date = self.start_date_input.text()
-        end_date = self.end_date_input.text()
-        statistics = []
+    def show_book_statistics(self):
+        print("Inside show_book_statistics")
+        book_title = self.statistics_input.text().strip()
+        found_books = [book for book in self.books if book_title.lower() == book["title"].lower()]
 
-        for book in self.books:
+        if found_books:
+            book_statistics = self.generate_statistics(found_books, self.start_date_input.text(),
+                                                       self.end_date_input.text())
+            self.show_statistics_dialog(book_statistics)
+        else:
+            QMessageBox.warning(self, "Результат поиска", "Книга не найдена.")
+
+    def show_author_statistics(self):
+        print("Inside show_author_statistics")
+        author_name = self.statistics_input.text().strip()
+        found_books = [book for book in self.books if author_name.lower() == book["author"].lower()]
+
+        if found_books:
+            author_statistics = self.generate_statistics(found_books, self.start_date_input.text(),
+                                                         self.end_date_input.text())
+            self.show_statistics_dialog(author_statistics)
+        else:
+            QMessageBox.warning(self, "Результат поиска", "Автор не найден.")
+
+    def show_all_statistics(self):
+        print("Inside show_all_statistics")
+        all_statistics = self.generate_statistics(self.books)
+        self.show_statistics_dialog(all_statistics)
+
+    def generate_statistics(self, books, start_date=None, end_date=None):
+        print("Inside generate_statistics")
+        statistics = {}
+        print("Start Date:", start_date)
+        print("End Date:", end_date)
+
+        for book in books:
+            count = 0
             history = book["history"]
             for entry in history:
                 entry_date = entry["date"]
+                print("Start Date Type:", type(start_date))  # Убедимся, что это строковый тип данных
+                print("Start Date Value:", start_date)  # Выведем значение начальной даты
+                print("End Date Type:", type(end_date))  # Убедимся, что это строковый тип данных
+                print("End Date Value:", end_date)  # Выведем значение конечной даты
+                print("Entry Date Type:", type(entry_date))  # Убедимся, что это строковый тип данных
+                print("Entry Date Value:", entry_date)  # Выведем саму дату
                 if start_date <= entry_date <= end_date:
-                    statistics.append(f"ID: {book['id']}, Название: {book['title']}, Автор: {book['author']}, История: {entry['reader']} - {entry['action']} ({entry_date})")
+                    count += 1
+            if count > 0:
+                author = book["author"]
+                if author not in statistics:
+                    statistics[author] = {}
+                statistics[author][book["title"]] = count
+        return statistics
 
+    def show_statistics_dialog(self, statistics):
         if statistics:
-            result = "\n\n".join(statistics)
-            QMessageBox.information(self, "Статистика", result)
+            QMessageBox.information(self, "Статистика", statistics)
         else:
-            QMessageBox.warning(self, "Статистика", "Нет данных для статистики в выбранном периоде.")
+            QMessageBox.warning(self, "Статистика", "Нет данных для статистики.")
+
+    def show_statistics(self):
+        print("Inside show_statistics")
+        option = self.statistics_options_combo.currentText()
+        start_date = self.start_date_input.text()
+        end_date = self.end_date_input.text()
+        query = self.statistics_input.text()
+        print("Option:", option)
+        print("Query:", query)
+        print("Start Date:", start_date)
+        print("End Date:", end_date)
+
+        if option == "Все книги":
+            statistics = self.generate_statistics(self.books, start_date, end_date)
+            statistics_str = ""
+            for author, books in statistics.items():
+                statistics_str += f"{author}:\n"
+                for book, count in books.items():
+                    statistics_str += f"{book} - {count}\n"
+                statistics_str += "\n"
+            self.show_statistics_dialog(statistics_str)
+            return  # Завершаем функцию для опции "Все книги"
+
+        if start_date and end_date:
+            try:
+                datetime.strptime(start_date, '%Y-%m-%d')
+                datetime.strptime(end_date, '%Y-%m-%d')
+            except ValueError:
+                QMessageBox.warning(self, "Ошибка", "Неверный формат даты. Используйте гггг-мм-дд.")
+                return
+
+            if option == "Книга":
+                if not query:
+                    QMessageBox.warning(self, "Ошибка", "Введите название книги для статистики.")
+                    return
+                filtered_books = [book for book in self.books if query.lower() == book["title"].lower()]
+                print("Filtered Books (Книга):", filtered_books)  # Отладочный вывод
+            elif option == "Автор":
+                if not query:
+                    QMessageBox.warning(self, "Ошибка", "Введите имя автора для статистики.")
+                    return
+                filtered_books = [book for book in self.books if query.lower() == book["author"].lower()]
+                print("Filtered Books (Автор):", filtered_books)  # Отладочный вывод
+            else:
+                filtered_books = self.books
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
